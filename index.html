@@ -1,161 +1,205 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>С днем ​​рождения!</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            text-align: center;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #ffb6c1, #ff69b4);
-            color: white;
-            overflow: hidden;
-        }
-        .container {
-            padding: 50px;
-            position: relative;
-            z-index: 2;
-        }
-        h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-        }
-        p {
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
-        .balloons {
-            font-size: 4em;
-        }
-        .button {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 15px 30px;
-            background-color: white;
-            color: #ff69b4;
-            text-decoration: none;
-            font-size: 1.2em;
-            border-radius: 30px;
-            transition: background-color 0.3s ease;
-            cursor: pointer;
-        }
-        .button:hover {
-            background-color: #ffe6f0;
-        }
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Happy Birthday Card</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f172a;
+      --card:#0b1220;
+      --accent:#ff7ab6;
+      --muted:#94a3b8;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Poppins',system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{background:linear-gradient(180deg,#0b1220 0%, #071028 60%), radial-gradient(800px 400px at 10% 10%, rgba(255,122,182,0.06), transparent 10%), #071233;display:flex;align-items:center;justify-content:center;padding:32px;color:white}
+
+    .card{
+      width:min(920px,95%);
+      background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border-radius:18px;padding:28px;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(2,6,23,0.6);
+      border:1px solid rgba(255,255,255,0.03);
+      display:grid;grid-template-columns:1fr 360px;gap:22px;align-items:center;
+    }
+
+    .left{padding:18px}
+    h1{font-size:42px;margin:0 0 6px 0;letter-spacing:-0.02em}
+    .name{color:var(--accent);font-weight:800}
+    p.lead{margin:0;color:var(--muted);font-size:16px}
+
+    .message-box{margin-top:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:14px;border-radius:12px;border:1px dashed rgba(255,255,255,0.03);min-height:120px}
+    .message{white-space:pre-wrap;font-size:15px}
+
+    .controls{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+    .btn{background:linear-gradient(90deg,var(--accent),#ffd27a);color:#061427;padding:10px 14px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
+    .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);font-weight:600}
+
+    .right{display:flex;flex-direction:column;align-items:center;padding:18px;gap:12px}
+    .cake{width:220px;height:220px;border-radius:20px;background:linear-gradient(180deg,#ffd9e8,#ffd1f0);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 12px 30px rgba(255,122,182,0.08) inset}
+    .cake:before{content:'';position:absolute;inset:26px;border-radius:12px;background:linear-gradient(180deg,#fff6f9,#ffe9f5)}
+    .candles{position:relative;z-index:2}
+    .candle{width:12px;height:44px;background:#ffb3d6;border-radius:6px;margin:0 6px;display:inline-block;position:relative}
+    .flame{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:10px;height:16px;border-radius:50%;background:linear-gradient(180deg,#ffd27a,#ff7a3d);box-shadow:0 6px 14px rgba(255,122,182,0.2);animation:flicker 1s infinite}
+    @keyframes flicker{0%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.12)}100%{transform:translateX(-50%) scale(1)}}
+
+    .gift{font-size:14px;color:var(--muted)}
+
+    /* confetti canvas full-size in card */
+    canvas.confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+    .footer{display:flex;gap:10px;align-items:center}
+
+    /* small screens */
+    @media (max-width:880px){
+      .card{grid-template-columns:1fr;}
+      .right{order:-1}
+    }
+
+    /* print friendly */
+    @media print{body{background:white;color:black} .card{box-shadow:none;border:0} canvas.confetti{display:none}}
+  </style>
 </head>
 <body>
-   <!--<audio autoplay loop>
-        <source src="https://www.bensound.com/bensound-music/bensound-birthdaysong.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio> -->
+  <div class="card" role="region" aria-label="Birthday card">
+    <canvas class="confetti" id="confettiCanvas"></canvas>
 
-    <!-- Placeholder for your custom click sound -->
-    <audio id="clickSound">
-        <source src="sound-song.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
+    <div class="left">
+      <h1>Happy Birthday, <span class="name" id="recipient">Friend</span> 🎉</h1>
+      <p class="lead" id="subtitle">Wishing you a day filled with love, laughter, and cake.</p>
 
-    <canvas id="confetti"></canvas>
+      <div class="message-box" id="messageBox">
+        <div class="message" id="message">May every moment today be filled with joy and your year ahead be full of adventures and smiles. Enjoy your special day!</div>
+      </div>
 
-    <div class="container">
-        <div class="balloons">🎈🎉🎈</div>
-        <h1>С днем ​​рождения, Мама!</h1>
-        <p>Желаю тебе дня, полного радости, любви и смеха. Пусть все твои мечты сбудутся!</p>
-        <button class="button" id="celebrateBtn">Нажми Чтобы Отпраздновать 🎂</button>
+      <div class="controls">
+        <button class="btn" id="editBtn">Edit card</button>
+        <button class="btn secondary" id="downloadBtn">Download as PNG</button>
+        <button class="btn secondary" id="printBtn">Print / Save PDF</button>
+      </div>
+
+      <div style="margin-top:12px;color:var(--muted);font-size:13px">Tip: click "Edit card" to personalize the name, subtitle and message.</div>
     </div>
 
-     <img src="photo.jpg" alt="photo" style="width:150px;height:300
-        px;">
+    <div class="right">
+      <div class="cake" aria-hidden="true">
+        <div class="candles">
+          <div class="candle"><div class="flame"></div></div>
+          <div class="candle"><div class="flame"></div></div>
+          <div class="candle"><div class="flame"></div></div>
+        </div>
+      </div>
 
-    <script>
-        const canvas = document.getElementById('confetti');
-        const ctx = canvas.getContext('2d');
-        const clickSound = document.getElementById('clickSound');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+      <div class="gift">-- made with ❤️ — open to customize</div>
 
-        const confettiCount = 150;
-        const confetti = [];
-        let isConfettiActive = false;
-        let animationFrame;
-        let soundPlayed = false;
+      <div class="footer">
+        <small style="color:var(--muted)">Share:</small>
+        <button class="btn secondary" id="shareBtn">Copy link (data)</button>
+      </div>
+    </div>
+  </div>
 
-        for (let i = 0; i < confettiCount; i++) {
-            confetti.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * -canvas.height,
-                r: Math.random() * 6 + 2,
-                d: Math.random() * confettiCount,
-                color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-                tilt: Math.random() * 10 - 10,
-                tiltAngleIncremental: Math.random() * 0.07 + .05,
-                tiltAngle: 0,
-                speed: Math.random() * 1 + 0.5
-            });
-        }
+  <script>
+    // Simple confetti using canvas
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, pieces = [];
+    function resize(){W = canvas.width = canvas.clientWidth; H = canvas.height = canvas.clientHeight}
+    window.addEventListener('resize', resize); resize();
 
-        function drawConfetti() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            confetti.forEach(c => {
-                ctx.beginPath();
-                ctx.lineWidth = c.r;
-                ctx.strokeStyle = c.color;
-                ctx.moveTo(c.x + c.tilt + c.r, c.y);
-                ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r);
-                ctx.stroke();
-            });
-            updateConfetti();
-        }
+    function random(min,max){return Math.random()*(max-min)+min}
+    function makePiece(){
+      return {
+        x: random(0,W), y: random(-H,0), w: random(6,12), h: random(8,18),
+        vx: random(-0.6,0.6), vy: random(1,3), r:random(0,360), vr:random(-6,6),
+        color: ['#ff7ab6','#ffd27a','#8be9d7','#9ad0ff'][Math.floor(Math.random()*4)]
+      }
+    }
+    for(let i=0;i<120;i++) pieces.push(makePiece());
 
-        function updateConfetti() {
-            confetti.forEach(c => {
-                c.tiltAngle += c.tiltAngleIncremental;
-                c.y += c.speed;
-                c.x += Math.sin(c.d / 50);
-                c.tilt = Math.sin(c.tiltAngle - c.d / 3) * 15;
+    function update(){
+      ctx.clearRect(0,0,W,H);
+      for(let p of pieces){
+        p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r*Math.PI/180);
+        ctx.fillStyle = p.color; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+        ctx.restore();
+        if(p.y>H+20){Object.assign(p, makePiece()); p.y = -10}
+      }
+      requestAnimationFrame(update);
+    }
+    update();
 
-                if (c.y > canvas.height) {
-                    c.y = Math.random() * -canvas.height;
-                    c.x = Math.random() * canvas.width;
-                }
-            });
-        }
+    // Edit dialog (very small, built-in)
+    document.getElementById('editBtn').addEventListener('click', ()=>{
+      const currentName = document.getElementById('recipient').textContent;
+      const currentSubtitle = document.getElementById('subtitle').textContent;
+      const currentMessage = document.getElementById('message').textContent;
+      const name = prompt('Recipient name', currentName) || currentName;
+      const subtitle = prompt('Subtitle', currentSubtitle) || currentSubtitle;
+      const message = prompt('Message (\n for new line)', currentMessage) || currentMessage;
+      document.getElementById('recipient').textContent = name;
+      document.getElementById('subtitle').textContent = subtitle;
+      document.getElementById('message').textContent = message.replace(/\\n/g,'\n');
+    });
 
-        function animate() {
-            if (!isConfettiActive) return;
-            animationFrame = requestAnimationFrame(animate);
-            drawConfetti();
-        }
+    // Download PNG: render card to canvas using html2canvas-like approach (simple)
+    document.getElementById('downloadBtn').addEventListener('click', async ()=>{
+      // We'll use the browser's built-in SVG foreignObject trick to rasterize HTML
+      const card = document.querySelector('.card');
+      const rect = card.getBoundingClientRect();
+      const clone = card.cloneNode(true);
+      // remove confetti canvas from clone for cleaner image
+      const conf = clone.querySelector('canvas.confetti'); if(conf) conf.remove();
 
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${rect.width}' height='${rect.height}'><foreignObject width='100%' height='100%'>${new XMLSerializer().serializeToString(clone).replace(/#/g,'%23')}</foreignObject></svg>`;
+      const svgBlob = new Blob([svg],{type:'image/svg+xml;charset=utf-8'});
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      img.onload = ()=>{
+        const out = document.createElement('canvas'); out.width = rect.width*2; out.height = rect.height*2; const octx = out.getContext('2d');
+        octx.scale(2,2); octx.fillStyle = window.getComputedStyle(document.body).background || '#fff'; octx.fillRect(0,0,rect.width,rect.height);
+        octx.drawImage(img,0,0);
+        URL.revokeObjectURL(url);
+        out.toBlob(blob=>{
+          const a = document.createElement('a'); a.download = `happy-birthday-${document.getElementById('recipient').textContent.replace(/\s+/g,'-').toLowerCase()}.png`;
+          a.href = URL.createObjectURL(blob); a.click();
         });
+      };
+      img.onerror = ()=>{alert('Sorry, your browser blocked exporting. Try printing instead.')};
+      img.src = url;
+    });
 
-        document.getElementById('celebrateBtn').addEventListener('click', () => {
-            if (!soundPlayed) {
-                clickSound.currentTime = 0;
-                clickSound.play();
-                soundPlayed = true;
-            }
-            if (!isConfettiActive) {
-                isConfettiActive = true;
-                animate();
-            }
-        });
-    </script>
+    // Print
+    document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+
+    // Share: create small data URL that can be copied (not a permanent link)
+    document.getElementById('shareBtn').addEventListener('click', ()=>{
+      const state = {
+        name: document.getElementById('recipient').textContent,
+        subtitle: document.getElementById('subtitle').textContent,
+        message: document.getElementById('message').textContent
+      };
+      const data = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+      navigator.clipboard?.writeText(location.href.split('#')[0] + '#' + data).then(()=>{
+        alert('Card data copied to clipboard — paste the full link to restore content.');
+      }, ()=>{prompt('Copy this data URL', location.href.split('#')[0] + '#' + data)});
+    });
+
+    // On load, restore from hash if present
+    window.addEventListener('load', ()=>{
+      if(location.hash && location.hash.length>1){
+        try{
+          const raw = decodeURIComponent(escape(atob(location.hash.slice(1))));
+          const obj = JSON.parse(raw);
+          if(obj.name) document.getElementById('recipient').textContent = obj.name;
+          if(obj.subtitle) document.getElementById('subtitle').textContent = obj.subtitle;
+          if(obj.message) document.getElementById('message').textContent = obj.message;
+        }catch(e){}
+      }
+    });
+
+  </script>
 </body>
 </html>
